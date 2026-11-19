@@ -1,0 +1,36 @@
+name: VAD checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  importer-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax checks
+        run: |
+          node --check frontend/editor.js
+          node --check frontend/ha-import.js
+      - name: Run importer tests
+        run: node --test tests/*.test.cjs
+  python-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile integration
+        run: python -m compileall -q custom_components/vad
+      - name: Validate manifest and HACS metadata
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path('custom_components/vad/manifest.json').read_text())
+          assert manifest['domain'] == 'vad'
+          assert manifest['version']
+          assert json.loads(Path('hacs.json').read_text())['name']
+          PY
