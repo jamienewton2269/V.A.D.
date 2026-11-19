@@ -9,7 +9,7 @@ python -m pip install PyYAML
 python tools/yaml_to_json.py automations.yaml -o vad-import.json
 ```
 
-Open `frontend/index.html` and choose **Import JSON** to load the converted file. For a YAML list of automations, the current frontend loads **the first automation only**; convert a single automation if you need to inspect a specific one.
+Open `frontend/index.html` and choose **Import JSON** to load the converted file. For a YAML list of automations, the frontend now displays an **Imported automations** selector to inspect each automation individually. Imported HA graphs are locked against direct edits.
 
 Safety boundaries:
 - Uses a restricted YAML loader, never evaluates Python objects or Jinja templates.
