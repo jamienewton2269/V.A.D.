@@ -12,7 +12,7 @@ function simulate(graph,scenario){
  const byId=new Map(graph.nodes.map(n=>[n.id,n]));if(byId.size!==graph.nodes.length)throw Error('Duplicate node IDs');
  const out=new Map(graph.nodes.map(n=>[n.id,[]]));const indegree=new Map(graph.nodes.map(n=>[n.id,0]));
  for(const e of graph.edges){if(!byId.has(e.from)||!byId.has(e.to))throw Error('Dangling edge');out.get(e.from).push(e.to);indegree.set(e.to,indegree.get(e.to)+1)}
- const roots=[...byId.keys()].filter(id=>indegree.get(id)===0);
+ const roots=[...byId.keys()].filter(id=>indegree.get(id)===0);if(byId.size&&!roots.length)throw Error('Cycle detected: no entry node');
  const trace=[],proposedActions=[],queue=roots.map(id=>({id,elapsedSeconds:0,path:[]}));let steps=0;
  while(queue.length){
   if(++steps>MAX_STEPS)throw Error('Simulation step limit exceeded (possible cycle)');
