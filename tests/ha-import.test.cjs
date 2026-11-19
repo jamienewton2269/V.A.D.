@@ -16,3 +16,18 @@ assert.ok(g.nodes.every(n=>n.ha.readOnly));
 test('rejects malformed actions',()=>assert.throws(()=>importAutomation({actions:{action:'light.turn_on'}})));
 test('accepts legacy HA trigger/action keys',()=>assert.equal(importCollection({trigger:[],action:[]}).length,1));
 test('keeps unknown actions opaque',()=>{const g=importAutomation({triggers:[],actions:[{custom_future_action:{key:'value'}}]});assert.deepEqual(g.nodes[1].ha.original,{custom_future_action:{key:'value'}})});
+
+test('supports nested if/then/else and parallel branches',()=>{
+ const a={alias:'Nested',triggers:[],actions:[{if:[{condition:'template',value_template:'{{ true }}'}],then:[{parallel:[[ {action:'light.turn_on'} ],[{delay:5}]]}],else:[{action:'light.turn_off'}]}]};
+ const g=importAutomation(a);
+ assert.deepEqual(g.source.automation,a);
+ assert.ok(g.nodes.some(n=>n.label==='If / then / else'));
+ assert.ok(g.nodes.some(n=>n.label==='Call light.turn_on'));
+ assert.ok(g.nodes.some(n=>n.label==='Call light.turn_off'));
+ assert.ok(g.nodes.some(n=>n.label==='Delay 5'));
+});
+test('source object is deeply cloned and remains independent of input',()=>{
+ const a={alias:'Original',triggers:[],actions:[{action:'light.turn_on'}]};
+ const g=importAutomation(a);a.actions[0].action='light.turn_off';
+ assert.equal(g.source.automation.actions[0].action,'light.turn_on');
+});
