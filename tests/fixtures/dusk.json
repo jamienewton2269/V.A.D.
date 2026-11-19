@@ -1,0 +1,46 @@
+{
+  "id": "vad-test-dusk",
+  "alias": "Dusk light test fixture",
+  "triggers": [
+    {
+      "trigger": "numeric_state",
+      "entity_id": "sensor.west_eaves_lux",
+      "below": 40
+    }
+  ],
+  "conditions": [
+    {
+      "condition": "state",
+      "entity_id": "input_boolean.lighting_manual_override",
+      "state": "off"
+    }
+  ],
+  "actions": [
+    {
+      "choose": [
+        {
+          "conditions": [
+            {
+              "condition": "state",
+              "entity_id": "binary_sensor.occupied",
+              "state": "on"
+            }
+          ],
+          "sequence": [
+            {
+              "action": "light.turn_on",
+              "target": {
+                "entity_id": "light.dining_room"
+              }
+            }
+          ]
+        }
+      ],
+      "default": [
+        {
+          "delay": "00:01:00"
+        }
+      ]
+    }
+  ]
+}
