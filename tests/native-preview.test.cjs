@@ -6,3 +6,15 @@ test('if else and override',()=>{const a={actions:[{if:[{condition:'state',entit
 test('unsupported parallel rejects rather than guessing',()=>assert.throws(()=>preview({actions:[{parallel:[[{action:'light.turn_on'}]]}]},{states}),/Unsupported/));
 test('missing sensor fails closed',()=>assert.throws(()=>preview({conditions:[{condition:'state',entity_id:'sensor.missing',state:'on'}],actions:[]},{states}),/Missing state/));
 test('stop prevents later service',()=>assert.equal(preview({actions:[{stop:'done'},{action:'light.turn_on'}]},{states}).proposedActions.length,0));
+
+test('preflight rejects unsupported late action before any preview',()=>{
+ const a={actions:[{action:'light.turn_on'},{parallel:[[{action:'light.turn_off'}]]}]};
+ assert.throws(()=>preview(a,{states}),/Unsupported/);
+});
+test('preflight rejects unknown metadata that would alter semantics',()=>{
+ assert.throws(()=>preview({actions:[{action:'light.turn_on',continue_on_error:true}]},{states}),/Unsupported/);
+});
+test('valid fixed delay remains supported',()=>{
+ const r=preview({actions:[{delay:'00:00:15'},{action:'light.turn_on'}]},{states});
+ assert.equal(r.proposedActions[0].atSeconds,15);
+});
