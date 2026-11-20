@@ -20,3 +20,7 @@ Safety boundaries:
 - Only import configuration you are authorised to access.
 
 Run tests with `python -m unittest discover -s tests -p 'test_*.py'`.
+
+## Browser import (development)
+
+The frontend now accepts `.yaml` and `.yml` directly using js-yaml 4.1.0, loaded from a pinned public CDN. JSON import does not require that library. This is a temporary online dependency; bundle the MIT-licensed parser locally before declaring an offline-capable release. YAML `!include`, `!secret` and other Home Assistant tags are deliberately rejected by the strict browser schema; use the offline converter for opaque tag inspection. Neither import path resolves includes or modifies HA. Browser parser tests currently use a mock parser and do not yet constitute end-to-end browser integration verification.
