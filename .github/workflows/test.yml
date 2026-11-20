@@ -16,6 +16,10 @@ jobs:
         run: |
           node --check frontend/editor.js
           node --check frontend/ha-import.js
+          node --check frontend/graph-analysis.js
+          node --check frontend/node-properties.js
+          node --check frontend/simulator.js
+          node --check frontend/native-preview.js
       - name: Run importer tests
         run: node --test tests/*.test.cjs
   python-checks:
