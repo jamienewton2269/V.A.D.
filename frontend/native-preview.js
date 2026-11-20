@@ -3,9 +3,33 @@
  */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.VADNativePreview=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){'use strict';
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+function preflight(automation){
+ let count=0;
+ function checkCondition(c){if(++count>1000)throw Error('Preview size limit');if(!c||typeof c!=='object'||Array.isArray(c))throw Error('Invalid condition');
+ const k=c.condition;
+ if(k==='state'){if(typeof c.entity_id!=='string'||typeof c.state!=='string'||Object.keys(c).some(x=>!['condition','entity_id','state','alias'].includes(x)))throw Error('Unsupported state condition');return}
+ if(k==='numeric_state'){if(typeof c.entity_id!=='string'||(!Object.prototype.hasOwnProperty.call(c,'above')&&!Object.prototype.hasOwnProperty.call(c,'below'))||Object.keys(c).some(x=>!['condition','entity_id','above','below','alias'].includes(x)))throw Error('Unsupported numeric condition');return}
+ if(['and','or','not'].includes(k)){if(!Array.isArray(c.conditions))throw Error('Condition group requires array');c.conditions.forEach(checkCondition);return}
+ throw Error('Unsupported HA condition: '+String(k));
+ }
+ function checkActions(items){if(!Array.isArray(items))throw Error('Action list required');for(const a of items){if(++count>1000)throw Error('Preview size limit');if(!a||typeof a!=='object'||Array.isArray(a))throw Error('Invalid action');
+ if(Object.prototype.hasOwnProperty.call(a,'choose')){if(Object.keys(a).some(x=>!['choose','default','alias'].includes(x))||!Array.isArray(a.choose))throw Error('Unsupported choose');for(const b of a.choose){if(!b||!Array.isArray(b.conditions)||!Array.isArray(b.sequence)||Object.keys(b).some(x=>!['conditions','sequence','alias'].includes(x)))throw Error('Invalid choose branch');b.conditions.forEach(checkCondition);checkActions(b.sequence)}if('default'in a)checkActions(a.default);continue}
+ if('if'in a){if(Object.keys(a).some(x=>!['if','then','else','alias'].includes(x))||!Array.isArray(a.if))throw Error('Unsupported if');a.if.forEach(checkCondition);checkActions(a.then||[]);checkActions(a.else||[]);continue}
+ if('delay'in a){if(typeof a.delay!=='string'||!/^\\d{1,3}:[0-5]\\d:[0-5]\\d$/.test(a.delay)||Object.keys(a).some(x=>!['delay','alias'].includes(x)))throw Error('Unsupported delay');continue}
+ if('stop'in a){if(Object.keys(a).some(x=>!['stop','alias'].includes(x)))throw Error('Unsupported stop');continue}
+ if('action'in a||'service'in a){const s=a.action||a.service;if(typeof s!=='string'||!/^[a-z0-9_]+\\.[a-z0-9_]+$/.test(s)||Object.keys(a).some(x=>!['action','service','target','data','alias','enabled'].includes(x))||('target'in a&&(!a.target||typeof a.target!=='object'||Array.isArray(a.target)))||('data'in a&&(!a.data||typeof a.data!=='object'||Array.isArray(a.data))))throw Error('Unsupported service action');continue}
+ throw Error('Unsupported HA action: '+Object.keys(a).join(','));
+ }}
+ const triggers=automation.triggers??automation.trigger??[],conds=automation.conditions??automation.condition??[],acts=automation.actions??automation.action;
+ if(!Array.isArray(triggers)||!Array.isArray(conds)||!Array.isArray(acts))throw Error('Invalid automation lists');
+ conds.forEach(checkCondition);checkActions(acts);
+ return {triggers,conds,acts};
+}
+
 function preview(automation,scenario){
  if(!automation||typeof automation!=='object'||Array.isArray(automation))throw Error('Invalid automation');
  if(!scenario||typeof scenario!=='object'||!scenario.states||typeof scenario.states!=='object')throw Error('Scenario states required');
+ const {triggers,conds,acts}=preflight(automation);
  const states=scenario.states,trace=[],proposedActions=[];let elapsed=0,steps=0,stopped=false;
  const requireStep=()=>{if(++steps>1000)throw Error('Preview limit exceeded')};
  function value(id){if(!own(states,id))throw Error('Missing state: '+id);return states[id]}
@@ -29,8 +53,6 @@ function preview(automation,scenario){
  proposedActions.push({service,target:a.target||{},data:a.data||{},atSeconds:elapsed});continue}
  throw Error('Unsupported HA action; refusing partial preview: '+Object.keys(a).join(','));
  }}
- const triggers=automation.triggers??automation.trigger??[],conds=automation.conditions??automation.condition??[],acts=automation.actions??automation.action;
- if(!Array.isArray(triggers)||!Array.isArray(conds)||!Array.isArray(acts))throw Error('Invalid automation lists');
  // Caller explicitly supplies the fired trigger. Do not guess which trigger fired.
  if(triggers.length){if(!Number.isInteger(scenario.triggerIndex)||scenario.triggerIndex<0||scenario.triggerIndex>=triggers.length)throw Error('Explicit triggerIndex required');trace.push({triggerIndex:scenario.triggerIndex,trigger:triggers[scenario.triggerIndex]})}
  const eligible=conditions(conds);if(eligible)actions(acts);
