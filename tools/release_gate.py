@@ -37,6 +37,11 @@ for src in re.findall(r'<script\s+src="([^"]+)"', index):
 bundle = ROOT / "custom_components/vad/frontend"
 if not bundle.is_dir() or not (bundle / "index.html").exists():
     fail("Frontend not packaged inside custom_components/vad/frontend")
+for file in ("index.html", "style.css", "editor.js", "ha-import.js",
+             "graph-analysis.js", "node-properties.js", "simulator.js",
+             "native-preview.js", "file-parser.js"):
+    if (frontend / file).read_bytes() != (bundle / file).read_bytes():
+        fail(f"Frontend bundle is stale: {file}")
 if not (ROOT / "custom_components/vad/config_flow.py").exists():
     fail("Integration lacks UI configuration flow")
 if not (ROOT / "custom_components/vad/__init__.py").exists():
