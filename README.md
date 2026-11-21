@@ -2,7 +2,7 @@
 
 **A Node-RED-style visual editor for native Home Assistant automations.**
 
-> **Development status:** Pre-alpha (v0.1.0 scaffold). The visual editor, automation importer, simulator and publishing workflow are **not yet implemented** in the GitHub integration. Do not install this as a working automation editor.
+> **Development status:** Pre-release (v0.1.0). A standalone visual editor, read-only importer, limited preview, and an initial Home Assistant admin-only panel are committed. Home Assistant runtime integration is **not yet tested**, YAML currently requires a CDN dependency, and native publishing is **not implemented**. Do not treat this as a production automation editor.
 
 V.A.D. aims to make Home Assistant automation logic easier to **see, understand, edit, test and extend**, without requiring users to write YAML or run a second automation engine.
 
@@ -43,7 +43,7 @@ See [Safety contract](docs/SAFETY.md).
 
 ## Installation
 
-**Not available yet.** The current repository contains a Home Assistant custom integration scaffold and HACS metadata, but not a functional sidebar editor or complete configuration flow. Please do not advertise it as HACS-installable until the integration is operational and verified.
+**Developer testing only:** the repository now includes a config flow and bundled editor assets in `custom_components/vad`. Copy that folder into a disposable Home Assistant test instance, restart, then add V.A.D. under Settings → Devices & services. The intended result is an admin-only V.A.D. sidebar panel. This path has **not yet been verified against a real HA runtime**. Do not install on your production Home Assistant instance.
 
 Planned distribution: **HACS-compatible custom integration**, with a Home Assistant sidebar editor. This does not imply acceptance into Home Assistant Core or any official marketplace.
 
@@ -83,3 +83,7 @@ The project is intended to be released under the **MIT licence**. A repository l
 ---
 
 Developed by **JNSystems**. V.A.D. is an independent open-source project for Home Assistant users.
+
+## Distribution readiness
+
+Run `python tools/sync_frontend.py` after changing frontend source and `python tools/release_gate.py` before any release. The gate intentionally fails while external scripts are required or the integration bundle is incomplete. The Home Assistant panel is currently a read-only iframe, **not a native automation publisher**. See [release blockers](docs/RELEASE_READINESS.md).
