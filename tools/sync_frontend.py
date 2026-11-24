@@ -8,7 +8,7 @@ source = ROOT / "frontend"
 target = ROOT / "custom_components/vad/frontend"
 FILES = ("index.html", "style.css", "editor.js", "ha-import.js",
          "graph-analysis.js", "node-properties.js", "simulator.js",
-         "native-preview.js", "file-parser.js", "js-yaml.min.js", "js-yaml.LICENSE")
+         "native-preview.js", "file-parser.js", "js-yaml.min.js", "js-yaml.LICENSE", "native-draft.js")
 
 def main():
     target.mkdir(parents=True, exist_ok=True)
