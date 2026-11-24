@@ -2,3 +2,9 @@ const {test}=require('node:test');const assert=require('node:assert/strict');con
 test('legacy paths preserve unrelated native source',()=>{const a={condition:[{condition:'state',entity_id:'binary_sensor.door',state:'off'}],action:[{custom:'opaque'}]};const b=edit(a,['conditions',0],'state','on');assert.equal(b.condition[0].state,'on');assert.equal(a.condition[0].state,'off');assert.deepEqual(b.action,a.action)});
 test('nested delay edit preserves branch',()=>{const a={actions:[{choose:[{conditions:[],sequence:[{delay:'00:00:01'}]}]}]};assert.equal(edit(a,['actions',0,'choose',0,'sequence',0],'delay','00:00:05').actions[0].choose[0].sequence[0].delay,'00:00:05')});
 test('rejects unsupported fields and invalid values',()=>{const a={actions:[{delay:'00:00:01'}]};assert.throws(()=>edit(a,['actions',0],'delay','bad'));assert.throws(()=>edit(a,['actions',0],'service','light.turn_on'))});
+
+const {restructure}=require('../frontend/native-draft.js');
+test('reorder native actions without mutating original',()=>{const a={actions:[{delay:'00:00:01'},{custom:'opaque'}]};const b=restructure(a,['actions',1],'up');assert.deepEqual(b.actions,[a.actions[1],a.actions[0]]);assert.equal(a.actions[0].delay,'00:00:01')});
+test('insert delay inside nested branch',()=>{const a={actions:[{if:[],then:[{action:'light.turn_on'}]}]};const b=restructure(a,['actions',0,'then',0],'insert-delay');assert.deepEqual(b.actions[0].then[1],{delay:'00:00:05'});assert.equal(a.actions[0].then.length,1)});
+test('reject final action removal and branch boundary crossing',()=>{const a={actions:[{delay:'00:00:01'}]};assert.throws(()=>restructure(a,['actions',0],'remove'));assert.throws(()=>restructure(a,['actions',0],'up'));assert.throws(()=>restructure(a,['actions',0],'down'))});
+test('legacy action sequence restructuring',()=>{const a={action:[{delay:'00:00:01'},{delay:'00:00:02'}]};assert.equal(restructure(a,['actions',0],'remove').action[0].delay,'00:00:02')});
