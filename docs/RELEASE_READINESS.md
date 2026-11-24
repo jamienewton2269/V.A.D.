@@ -8,7 +8,7 @@
 - Home Assistant config flow: local, single instance, no credentials.
 - Admin-only sidebar iframe panel: serves packaged frontend at `/vad_static/index.html`.
 - The editor has no API to read, edit or publish Home Assistant automations. Users import local files.
-- YAML browser parsing currently loads js-yaml 4.1.0 from a third-party CDN. This dependency must be vendored locally and its license retained before release.
+- YAML browser parsing uses locally bundled js-yaml 4.1.1 with its upstream license. Dependency security review remains required.
 
 ## Required gates
 
@@ -23,8 +23,12 @@
 
 ## Threat and compatibility notes
 
-Static asset URLs are not sensitive, but the iframe must be restricted to admins. Importing an automation file may reveal sensitive entity names in the user's browser; files must not be uploaded to third parties. CDN parser loading currently violates the offline/no-third-party objective. Native HA preview is a limited, fail-closed approximation; it does not prove execution equivalence.
+Static asset URLs are not sensitive, but the iframe must be restricted to admins. Importing an automation file may reveal sensitive entity names in the user's browser; files must not be uploaded to third parties. The CDN dependency has been removed. Browser network isolation still needs verification. Native HA preview is a limited, fail-closed approximation; it does not prove execution equivalence.
 
 ## Version policy
 
 Do not tag v1.0 or claim marketplace readiness until integration testing and security review are complete. Use pre-release tags for opt-in testing.
+
+## Automated checks
+
+The VAD checks, Home Assistant integration tests and HACS validation workflows are configured in GitHub Actions. Passing results must be verified before tagging a release. The HA test dependency is currently unpinned; establish a tested compatibility matrix before publication.
