@@ -1,0 +1,7 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "V.A.D. is already configured."
+    }
+  }
+}
