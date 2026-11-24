@@ -22,9 +22,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Register static assets and an admin-only panel, with no HA writes."""
-    await hass.http.async_register_static_paths([
-        StaticPathConfig(ASSET_PATH, str(ASSET_DIR), cache_headers=False)
-    ])
+    state = hass.data.setdefault(DOMAIN, {})
+    if not state.get("assets_registered"):
+        await hass.http.async_register_static_paths([
+            StaticPathConfig(ASSET_PATH, str(ASSET_DIR), cache_headers=False)
+        ])
+        state["assets_registered"] = True
     frontend.async_register_built_in_panel(
         hass,
         component_name="iframe",
