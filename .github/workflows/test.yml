@@ -14,12 +14,7 @@ jobs:
           node-version: '22'
       - name: JavaScript syntax checks
         run: |
-          node --check frontend/editor.js
-          node --check frontend/ha-import.js
-          node --check frontend/graph-analysis.js
-          node --check frontend/node-properties.js
-          node --check frontend/simulator.js
-          node --check frontend/native-preview.js
+          for file in frontend/*.js; do node --check "$file"; done
       - name: Run importer tests
         run: node --test tests/*.test.cjs
   python-checks:
@@ -52,3 +47,6 @@ jobs:
           assert manifest['version']
           assert json.loads(Path('hacs.json').read_text())['name']
           PY
+
+      - name: Static distribution readiness gate
+        run: python tools/release_gate.py
