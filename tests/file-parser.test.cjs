@@ -12,3 +12,7 @@ test('real bundled YAML parser imports native automation',()=>{
 });
 test('real bundled parser refuses unknown tags',()=>assert.throws(()=>parse('actions: []\nsecret: !secret password','a.yaml',yaml)));
 test('real bundled parser rejects duplicate keys',()=>assert.throws(()=>parse('actions: []\nactions: []','a.yaml',yaml)));
+
+test('rejects cyclic aliases',()=>assert.throws(()=>parse('actions: &a [*a]','a.yaml',yaml),/Cyclic/));
+test('rejects unsafe mapping keys',()=>assert.throws(()=>parse('actions: []\nconstructor: bad','a.yaml',yaml),/Unsafe/));
+test('rejects excessive nesting',()=>assert.throws(()=>parse('actions: '+ '['.repeat(70)+'0'+']'.repeat(70),'a.yaml',yaml),/limits/));
