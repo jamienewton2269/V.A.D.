@@ -1,0 +1,4 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const {edit}=require('../frontend/native-draft.js');
+test('legacy paths preserve unrelated native source',()=>{const a={condition:[{condition:'state',entity_id:'binary_sensor.door',state:'off'}],action:[{custom:'opaque'}]};const b=edit(a,['conditions',0],'state','on');assert.equal(b.condition[0].state,'on');assert.equal(a.condition[0].state,'off');assert.deepEqual(b.action,a.action)});
+test('nested delay edit preserves branch',()=>{const a={actions:[{choose:[{conditions:[],sequence:[{delay:'00:00:01'}]}]}]};assert.equal(edit(a,['actions',0,'choose',0,'sequence',0],'delay','00:00:05').actions[0].choose[0].sequence[0].delay,'00:00:05')});
+test('rejects unsupported fields and invalid values',()=>{const a={actions:[{delay:'00:00:01'}]};assert.throws(()=>edit(a,['actions',0],'delay','bad'));assert.throws(()=>edit(a,['actions',0],'service','light.turn_on'))});
