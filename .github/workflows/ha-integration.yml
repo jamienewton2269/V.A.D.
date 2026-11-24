@@ -1,0 +1,19 @@
+name: Home Assistant integration tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  lifecycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install isolated HA test environment
+        run: python -m pip install pytest-homeassistant-custom-component
+      - name: Test integration lifecycle
+        run: python -m pytest -v integration_tests
