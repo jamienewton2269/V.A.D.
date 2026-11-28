@@ -11,3 +11,7 @@ test('legacy action sequence restructuring',()=>{const a={action:[{delay:'00:00:
 
 test('insert configured service action',()=>{const a={actions:[{delay:'00:00:01'}]};const b=restructure(a,['actions',0],'insert-service',{service:'light.turn_on',entity:'light.hall'});assert.deepEqual(b.actions[1],{action:'light.turn_on',target:{entity_id:'light.hall'}});assert.equal(a.actions.length,1)});
 test('reject malformed service or target',()=>{const a={actions:[{delay:'00:00:01'}]};assert.throws(()=>restructure(a,['actions',0],'insert-service',{service:'bad',entity:'light.hall'}));assert.throws(()=>restructure(a,['actions',0],'insert-service',{service:'light.turn_on',entity:'bad'}))});
+
+const {addNative}=require('../frontend/native-draft.js');
+test('add modern trigger and condition without changing original',()=>{const a={actions:[]};const b=addNative(addNative(a,'trigger',{entity:'binary_sensor.door',state:'on'}),'condition',{entity:'input_boolean.enabled',state:'on'});assert.deepEqual(b.triggers,[{trigger:'state',entity_id:'binary_sensor.door',to:'on'}]);assert.deepEqual(b.conditions,[{condition:'state',entity_id:'input_boolean.enabled',state:'on'}]);assert.deepEqual(a,{actions:[]})});
+test('preserve legacy trigger syntax',()=>{const a={trigger:[],action:[]};assert.equal(addNative(a,'trigger',{entity:'light.hall',state:'off'}).trigger[0].platform,'state')});
