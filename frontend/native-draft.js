@@ -13,7 +13,7 @@ function edit(source,path,key,value){
  if(key==='delay'&&!/^\d{1,3}:[0-5]\d:[0-5]\d$/.test(value))throw Error('Use HH:MM:SS');
  node[key]=value;return draft;
 }
-function restructure(source,path,operation){
+function restructure(source,path,operation,options={}){
  if(!Array.isArray(path)||!path.length||!Number.isInteger(path[path.length-1]))throw Error('Select an action in a sequence');
  const draft=clone(source);let list=draft;
  const parent=path.slice(0,-1);
@@ -23,6 +23,7 @@ function restructure(source,path,operation){
  const index=path[path.length-1];if(index<0||index>=list.length)throw Error('Invalid action index');
  if(operation==='up'||operation==='down'){const target=index+(operation==='up'?-1:1);if(target<0||target>=list.length)throw Error('Already at sequence boundary');[list[index],list[target]]=[list[target],list[index]]}
  else if(operation==='insert-delay')list.splice(index+1,0,{delay:'00:00:05'});
+ else if(operation==='insert-service'){const service=options.service;if(typeof service!=='string'||!/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/.test(service))throw Error('Enter a domain.service action');const entity=options.entity;if(typeof entity!=='string'||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(entity))throw Error('Enter a target entity ID');list.splice(index+1,0,{action:service,target:{entity_id:entity}})}
  else if(operation==='remove'){if(list.length===1)throw Error('Cannot remove the final action in a sequence');list.splice(index,1)}
  else throw Error('Unsupported structural edit');
  return draft;
