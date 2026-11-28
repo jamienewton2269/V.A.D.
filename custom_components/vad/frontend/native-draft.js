@@ -28,5 +28,16 @@ function restructure(source,path,operation,options={}){
  else throw Error('Unsupported structural edit');
  return draft;
 }
-return {edit,restructure};
+function addNative(source,kind,options={}){
+ const draft=clone(source);
+ if(!['trigger','condition'].includes(kind))throw Error('Unsupported node kind');
+ const entity=options.entity,state=options.state;
+ if(typeof entity!=='string'||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(entity))throw Error('Enter a valid entity ID');
+ if(typeof state!=='string'||!state.trim()||state.length>255)throw Error('Enter a state');
+ const plural=kind+'s',key=Object.hasOwn(draft,plural)?plural:Object.hasOwn(draft,kind)?kind:plural;
+ if(Object.hasOwn(draft,key)&&!Array.isArray(draft[key]))throw Error('Unsupported native collection');
+ const node=kind==='trigger'?{[key==='trigger'?'platform':'trigger']:'state',entity_id:entity,to:state}:{condition:'state',entity_id:entity,state};
+ (draft[key]??=[]).push(node);return draft;
+}
+return {edit,restructure,addNative};
 });
